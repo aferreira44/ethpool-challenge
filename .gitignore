@@ -4,7 +4,7 @@ yarn-error.log
 
 # Ignore build stuff
 cache
-build
+/build
 dist
 
 # Buidler cache
