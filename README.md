@@ -1,57 +1,57 @@
-# Smart Contract Challenge
+# Ethereum Solidity Starter
 
-ETHPool provides a service where people can deposit ETH and they will receive weekly rewards.
+This is a skeleton repository to work as a foundation for a smart contracts project using Solidity.
 
-Users must be able to take out their deposits along with their portion of rewards at any time.
+## Quickstart
 
-New rewards are deposited manually into the pool by the ETHPool team each week using a contract function.
+1. Clone the repo
+2. Run `yarn install`
 
-## Requirements
+## What’s Included?
 
-- Only the team can deposit rewards.
-- Deposited rewards go to the pool of users, not to individual users.
-- Users should be able to withdraw their deposits along with their share of rewards considering the time when they deposited.
+- **[Hardhat](https://hardhat.org/)**: Ethereum development environment for professionals.
+- **[Waffle](https://getwaffle.io/)**: The most advanced framework for testing smart contracts
+- **[Typechain](https://github.com/ethereum-ts/TypeChain)**: TypeScript bindings for Ethereum smart contracts
+- **[Tenderly](https://tenderly.co/)**: Real-time monitoring, alerting, and troubleshooting for Smart Contracts.
+- **[Ethers]()**: A complete Ethereum wallet implementation and utilities in JavaScript (and TypeScript).
+- **[Etherscan](https://etherscan.io)**: Verify contracts in The Ethereum Blockchain Explorer
 
-**Example:**
+#### Hardhat Plugins
+- ABI Exporter
+- Gas Reporter
+- Contract Sizer
+- OpenZeppelin Upgrades
+## Usage
 
-Let say we have user A and B and team T.
-A deposits 100, and B deposits 300 for a total of 400 in the pool. Now A has 25% of the pool and B has 75%. When T deposits 200 rewards, A should be able to withdraw 150 and B 450.
+Look at the `package.json` inside scripts section to see available commands. A number of helper build scripts are located in `/scripts`.
+### Build contracts
 
-*What if the following happens?*
+Compiles contracts and creates Typechain bindings.
 
-A deposits then T deposits then B deposits then A withdraws and finally B withdraws. A should get their deposit + all the rewards.
-B should only get their deposit because rewards were sent to the pool before they participated.
+`yarn build`
 
-## Goal
+### Run tests
 
-Design and code a contract for ETHPool, take all the assumptions you need to move forward.
+Runs all tests in the `/test` folder.
 
-You can use any development tools you prefer: Hardhat, Truffle, Brownie, Solidity, Vyper.
+`yarn test`
 
-## Useful resources:
+### Run tests with gas report
 
-- Solidity Docs: https://docs.soliditylang.org/en/v0.8.4
-- Educational Resource: https://github.com/austintgriffith/scaffold-eth
-- Project Starter: https://github.com/abarmat/solidity-starter
+Run all tests calculating gas estimations.
 
-## Steps
+`yarn test:gas`
 
-1. Setup a project and create a contract
-2. Write tests
+The gas report will be saved on the `/reports` folder.
 
-Make sure that all your code is tested properly
+### Deploy to Ethereum
 
-3. Deploy your contract
+Create/modify network config in hardhat.config.ts and add API key and private key, then run:
 
-Deploy the contract to any Ethereum testnet of your preference.
+`npx hardhat run --network rinkeby scripts/deploy.ts`
 
-Keep record of the deployed address.
+### Verify on Etherscan
 
-**Bonus:**
+Using the hardhat-etherscan plugin, add Etherscan API key to hardhat.config.ts, then run:
 
-- Verify the contract in Etherscan
-- Interact with the contract
-
-Create a script (or a Hardhat task) to query the total amount of ETH held in the contract.
-
-You can use any library you prefer: Ethers.js, Web3.js, Web3.py, eth-brownie
+`npx hardhat verify --network rinkeby <DEPLOYED ADDRESS>`
