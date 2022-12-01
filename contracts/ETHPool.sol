@@ -17,7 +17,7 @@ contract ETHPool is AccessControl {
         _grantRole(ADMIN_ROLE, msg.sender);
     }
 
-    // function deposit() public payable {
-    //     require(msg.value > 0, "You need to send some Ether");
-    // }
+    function deposit() public payable {
+        require(msg.value > 0, "You need to send some Ether");
+    }
 }
