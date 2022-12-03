@@ -46,7 +46,7 @@ describe('ETHPool', () => {
     });
 
     describe('deposit', async () => {
-        it('Any user should deposit ETH to the pool', async () => {
+        it('Should transfer value properly from an address to the pool', async () => {
             const amount = ethers.utils.parseEther('1');
             const tx = ethPool.connect(userA).deposit({ value: amount });
 
@@ -55,6 +55,27 @@ describe('ETHPool', () => {
 
             await expect(tx).to.emit(ethPool, 'Deposit').withArgs(userA.address, amount);
         });
+
+        it('Should store the amount deposited by each address', async () => {
+            const userA_amount = ethers.utils.parseEther('100');
+            const userB_amount = ethers.utils.parseEther('300');
+
+            await ethPool.connect(userA).deposit({ value: userA_amount });
+            await ethPool.connect(userB).deposit({ value: userB_amount });
+
+            const currentRewardRound = (await ethPool.getRewardRoundCounter()).toNumber();
+
+            const amountDeposited = {
+                userA: await ethPool.depositedByAddressPerRound(currentRewardRound, userA.address),
+                userB: await ethPool.depositedByAddressPerRound(currentRewardRound, userB.address),
+            };
+
+            expect(amountDeposited.userA).to.be.equal(userA_amount);
+            expect(amountDeposited.userB).to.be.equal(userB_amount);
+
+            const totalDepositedExpected = userA_amount.add(userB_amount);
+            expect(await ethPool.totalDeposited(currentRewardRound)).to.be.equal(totalDepositedExpected);
+        });
     });
 
     describe('depositReward', async () => {
@@ -62,9 +83,65 @@ describe('ETHPool', () => {
             const amount = ethers.utils.parseEther('1');
             const tx = ethPool.connect(teamMember).depositReward({ value: amount });
 
+            const currentRewardRound = (await ethPool.getRewardRoundCounter()).toNumber();
+
             await expect(tx).to.changeEtherBalance(teamMember.address, amount.mul(-1));
             await expect(tx).to.changeEtherBalance(ethPool.address, amount);
 
+            expect(await ethPool.totalRewards(currentRewardRound)).to.be.equal(amount);
+
+            await expect(tx).to.emit(ethPool, 'DepositReward').withArgs(teamMember.address, amount);
+        });
+    });
+
+    describe('withdraw', async () => {
+        it('A and B deposits, then T deposits rewards, then A and B widthdraw', async () => {
+            const userA_amount = ethers.utils.parseEther('100');
+            const userB_amount = ethers.utils.parseEther('300');
+            const teamMember_amount = ethers.utils.parseEther('200');
+
+            await ethPool.connect(userA).deposit({ value: userA_amount });
+            await ethPool.connect(userB).deposit({ value: userB_amount });
+            await ethPool.connect(teamMember).depositReward({ value: teamMember_amount });
+
+            const userA_tx = ethPool.connect(userA).withdraw();
+
+            await expect(userA_tx).to.changeEtherBalance(userA.address, ethers.utils.parseEther('150'));
+            await expect(userA_tx).to.changeEtherBalance(ethPool.address, ethers.utils.parseEther('150').mul(-1));
+
+            await expect(userA_tx).to.emit(ethPool, 'Withdraw').withArgs(userA.address, ethers.utils.parseEther('150'));
+
+            const userB_tx = ethPool.connect(userB).withdraw();
+
+            await expect(userB_tx).to.changeEtherBalance(userB.address, ethers.utils.parseEther('450'));
+            await expect(userB_tx).to.changeEtherBalance(ethPool.address, ethers.utils.parseEther('450').mul(-1));
+
+            await expect(userB_tx).to.emit(ethPool, 'Withdraw').withArgs(userB.address, ethers.utils.parseEther('450'));
+        });
+
+        it('A deposits, then T deposits rewards, then B deposits, then A and B widthdraw', async () => {
+            const userA_amount = ethers.utils.parseEther('100');
+            const userB_amount = ethers.utils.parseEther('300');
+            const teamMember_amount = ethers.utils.parseEther('200');
+
+            await ethPool.connect(userA).deposit({ value: userA_amount });
+            await ethPool.connect(teamMember).depositReward({ value: teamMember_amount });
+            await ethPool.connect(teamMember).startNewRewardRound();
+            await ethPool.connect(userB).deposit({ value: userB_amount });
+
+            const userA_tx = ethPool.connect(userA).withdraw();
+
+            await expect(userA_tx).to.changeEtherBalance(userA.address, ethers.utils.parseEther('300'));
+            await expect(userA_tx).to.changeEtherBalance(ethPool.address, ethers.utils.parseEther('300').mul(-1));
+
+            await expect(userA_tx).to.emit(ethPool, 'Withdraw').withArgs(userA.address, ethers.utils.parseEther('300'));
+
+            const userB_tx = ethPool.connect(userB).withdraw();
+
+            await expect(userB_tx).to.changeEtherBalance(userB.address, ethers.utils.parseEther('300'));
+            await expect(userB_tx).to.changeEtherBalance(ethPool.address, ethers.utils.parseEther('300').mul(-1));
+
+            await expect(userB_tx).to.emit(ethPool, 'Withdraw').withArgs(userB.address, ethers.utils.parseEther('300'));
             await expect(tx)
                 .to.emit(ethPool, 'DepositReward')
                 .withArgs(teamMember.address, amount);
@@ -77,9 +154,9 @@ describe('ETHPool', () => {
             
             const isTeamMember = await ethPool.hasRole(ethPool.TEAM_MEMBER_ROLE(), newTeamMember.address);
 
-            await expect(isTeamMember).to.be.true;
+            expect(isTeamMember).to.be.true;
             
-            await expect(tx)
+            expect(tx)
                 .to.emit(ethPool, 'RoleGranted')
                 .withArgs(await ethPool.TEAM_MEMBER_ROLE(), newTeamMember.address, admin.address);
         });
