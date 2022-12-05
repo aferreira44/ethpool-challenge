@@ -74,6 +74,9 @@ const config: HardhatUserConfig = {
     tests: './test',
     artifacts: './build/contracts',
   },
+  mocha: {
+    timeout: 100000000 // Increase test timeout to test block gas limit
+  },
   solidity: {
     compilers: [
       {
