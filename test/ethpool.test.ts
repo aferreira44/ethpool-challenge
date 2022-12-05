@@ -11,7 +11,6 @@ const { getContractFactory, getSigners } = ethers;
 
 describe('ETHPool', () => {
     let ethPool: ETHPool;
-    let signers: SignerWithAddress[];
 
     let admin, teamMember, userA, userB: SignerWithAddress;
     let newTeamMember: SignerWithAddress;
@@ -142,33 +141,6 @@ describe('ETHPool', () => {
             await expect(userB_tx).to.changeEtherBalance(ethPool.address, ethers.utils.parseEther('300').mul(-1));
 
             await expect(userB_tx).to.emit(ethPool, 'Withdraw').withArgs(userB.address, ethers.utils.parseEther('300'));
-        });
-
-        it.only('LOAD TEST: A deposits, then T deposits rewards, then B deposits, then A and B widthdraw', async () => {
-            const userA_amount = ethers.utils.parseEther('0.1');
-            const userB_amount = ethers.utils.parseEther('3');
-            const teamMember_amount = ethers.utils.parseEther('0.2');
-
-            for (let i = 0; i < 10000; i++) {
-                await ethPool.connect(userA).deposit({ value: userA_amount });
-                await ethPool.connect(teamMember).depositReward({ value: teamMember_amount });
-
-                // await ethPool.connect(userB).deposit({ value: userB_amount });
-            }
-            
-            const userA_tx = ethPool.connect(userA).withdraw();
-
-            await expect(userA_tx).to.changeEtherBalance(userA.address, ethers.utils.parseEther('3000'));
-            await expect(userA_tx).to.changeEtherBalance(ethPool.address, ethers.utils.parseEther('3000').mul(-1));
-
-            await expect(userA_tx).to.emit(ethPool, 'Withdraw').withArgs(userA.address, ethers.utils.parseEther('3000'));
-
-            // const userB_tx = ethPool.connect(userB).withdraw();
-
-            // await expect(userB_tx).to.changeEtherBalance(userB.address, ethers.utils.parseEther('3'));
-            // await expect(userB_tx).to.changeEtherBalance(ethPool.address, ethers.utils.parseEther('3').mul(-1));
-
-            // await expect(userB_tx).to.emit(ethPool, 'Withdraw').withArgs(userB.address, ethers.utils.parseEther('3'));
         });
     });
 
