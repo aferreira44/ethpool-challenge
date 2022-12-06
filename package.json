@@ -23,7 +23,7 @@
     "prettier:sol": "prettier --write 'contracts/*.sol'",
     "security": "scripts/security",
     "flatten": "scripts/flatten",
-    "verify": "hardhat verify"
+    "verify": "hardhat verify --network goerli"
   },
   "files": [
     "dist/**/*",
