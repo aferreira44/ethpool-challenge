@@ -40,7 +40,12 @@ function getAccountMnemonic() {
 }
 
 function getDefaultProviderURL(network: string) {
-  return `https://${network}.infura.io/v3/${process.env.INFURA_KEY}`
+  switch (network) {
+    case 'goerli':
+      return `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+    default:
+      return `https://${network}.infura.io/v3/${process.env.INFURA_KEY}`
+  }
 }
 
 function setupDefaultNetworkProviders(buidlerConfig) {
@@ -104,13 +109,16 @@ const config: HardhatUserConfig = {
       gasPrice: 'auto',
       blockGasLimit: 12000000,
       accounts: {
-        mnemonic: 'myth like bonus scare over problem client lizard pioneer submit female collect',
+        mnemonic: process.env.MNEMONIC,
       },
     },
     ganache: {
       chainId: 1337,
       url: 'http://localhost:8545',
     },
+    goerli: {
+      url: `https://eth-goerli.g.alchemy.com/v2/lRVWtMtmxQFJHifsyqKiNvYZVMFoPYkY`,
+    }
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
