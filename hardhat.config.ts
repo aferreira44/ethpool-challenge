@@ -119,7 +119,8 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS ? true : false,
     showTimeSpent: true,
     currency: 'USD',
-    outputFile: 'reports/gas-report.log',
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    // outputFile: 'reports/gas-report.log',
   },
   typechain: {
     outDir: 'build/types',
