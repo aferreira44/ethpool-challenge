@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.16;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -84,9 +84,11 @@ contract ETHPool is AccessControl {
             amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(rewards);
         }
 
-        payable(msg.sender).transfer(amountToWithdraw[msg.sender]);
+        amountToWithdraw[msg.sender] = 0;
 
         emit Withdraw(msg.sender, amountToWithdraw[msg.sender]);
+
+        payable(msg.sender).transfer(amountToWithdraw[msg.sender]);
     }
 
     function calculateRewards(uint256 week) private view returns (uint256 rewards) {

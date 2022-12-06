@@ -12,6 +12,6 @@ pip3 install --user slither-analyzer && \
 yarn build && \
 
 echo "Analyzing contracts..."
-slither . &> reports/analyzer-report.log && \
+slither . --hardhat-artifacts-directory build/contracts --exclude-dependencies
 
-echo "Done!"
+exit 0
