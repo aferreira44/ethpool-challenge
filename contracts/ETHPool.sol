@@ -6,10 +6,10 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-using SafeMath for uint256;
-using Counters for Counters.Counter;
-
 contract ETHPool is AccessControl {
+    using SafeMath for uint256;
+    using Counters for Counters.Counter;
+    
     event Deposit(address indexed user, uint256 week, uint256 amount);
     event DepositReward(address indexed teamMember, uint256 week, uint256 amount);
     event Withdraw(address indexed user, uint256 amount);
@@ -67,7 +67,7 @@ contract ETHPool is AccessControl {
         rewardsDeposited[currentWeek] = rewardsDeposited[currentWeek].add(msg.value);
 
         _weekCounter.increment();
-        
+
         emit DepositReward(msg.sender, currentWeek, msg.value);
     }
 
@@ -93,7 +93,7 @@ contract ETHPool is AccessControl {
         require(totalDeposited[week] > 0, "No one deposited for this week");
         require(rewardsDeposited[week] > 0, "Rewards not deposited for this week");
         require(depositedByAddress[week][msg.sender] > 0, "You didn't deposit for this week");
-    
+
         return depositedByAddress[week][msg.sender].mul(rewardsDeposited[week]).div(totalDeposited[week]);
     }
 
