@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract ETHPool is AccessControl {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
-    
+
     event Deposit(address indexed user, uint256 week, uint256 amount);
     event DepositReward(address indexed teamMember, uint256 week, uint256 amount);
     event Withdraw(address indexed user, uint256 amount);
@@ -19,13 +19,13 @@ contract ETHPool is AccessControl {
     Counters.Counter private _weekCounter;
 
     // weekNumber => userAddress => amountDeposited
-    mapping(uint => mapping(address => uint256)) public depositedByAddress;
+    mapping(uint256 => mapping(address => uint256)) public depositedByAddress;
 
     // weekNumber => totalDeposited
-    mapping(uint => uint256) public totalDeposited;
+    mapping(uint256 => uint256) public totalDeposited;
 
     // weekNumber => rewardsDeposited
-    mapping(uint => uint256) public rewardsDeposited;
+    mapping(uint256 => uint256) public rewardsDeposited;
 
     // userAddress => weekNumber
     mapping(address => uint256[]) public weeksUserDeposited;
@@ -97,7 +97,7 @@ contract ETHPool is AccessControl {
         return depositedByAddress[week][msg.sender].mul(rewardsDeposited[week]).div(totalDeposited[week]);
     }
 
-    function getCurrentWeek() public view returns(uint256 rewardRoundCounter) {
+    function getCurrentWeek() public view returns (uint256 rewardRoundCounter) {
         return _weekCounter.current();
     }
 
