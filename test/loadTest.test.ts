@@ -110,7 +110,7 @@ describe('ETHPool LOAD TEST', () => {
         await expect(userB_tx).to.emit(ethPool, 'Withdraw').withArgs(userB.address, ethers.utils.parseEther('0.05'));
     });
 
-    it('LOAD TEST 1000x: A deposits, then T deposits rewards, then B deposits, then T deposits rewards, then A and B widthdraw', async () => {
+    xit('LOAD TEST 1000x: A deposits, then T deposits rewards, then B deposits, then T deposits rewards, then A and B widthdraw', async () => {
         const userA_amount = ethers.utils.parseEther('0.001');
         const userB_amount = ethers.utils.parseEther('0.003');
         const teamMember_amount = ethers.utils.parseEther('0.002');
@@ -138,7 +138,7 @@ describe('ETHPool LOAD TEST', () => {
         await expect(userB_tx).to.emit(ethPool, 'Withdraw').withArgs(userB.address, ethers.utils.parseEther('5'));
     });
 
-    it('LOAD TEST 10000x: A deposits, then T deposits rewards, then B deposits, then T deposits rewards, then A and B widthdraw', async () => {
+    xit('LOAD TEST 10000x: A deposits, then T deposits rewards, then B deposits, then T deposits rewards, then A and B widthdraw', async () => {
         const userA_amount = ethers.utils.parseEther('0.001');
         const userB_amount = ethers.utils.parseEther('0.003');
         const teamMember_amount = ethers.utils.parseEther('0.002');
