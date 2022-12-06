@@ -30,6 +30,9 @@ contract ETHPool is AccessControl {
     // userAddress => weekNumber
     mapping(address => uint256) public lastWeekUserDeposited;
 
+    // timestamp
+    uint256 public lastTimeDepositReward;
+
     // userAddress => amountToWithdraw
     mapping(address => uint256) public amountToWithdraw;
 
@@ -61,11 +64,13 @@ contract ETHPool is AccessControl {
 
     function depositReward() public payable onlyRole(TEAM_MEMBER_ROLE) {
         require(msg.value > 0, "You need to send some ETH as reward");
+        require(block.timestamp > lastTimeDepositReward.add(1 weeks), "Team members can only deposit rewards once a week");
 
         uint256 currentWeek = _weekCounter.current();
 
         rewardsDeposited[currentWeek] = rewardsDeposited[currentWeek].add(msg.value);
 
+        lastTimeDepositReward = block.timestamp;
         _weekCounter.increment();
 
         emit DepositReward(msg.sender, currentWeek, msg.value);
