@@ -9,7 +9,7 @@ import { BigNumber } from 'ethers';
 
 const { getContractFactory, getSigners } = ethers;
 
-describe('ETHPool LOAD TEST', () => {
+xdescribe('ETHPool LOAD TEST', () => {
     let ethPool: ETHPool;
     let signers: SignerWithAddress[];
 
