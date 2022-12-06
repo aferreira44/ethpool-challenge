@@ -40,7 +40,12 @@ function getAccountMnemonic() {
 }
 
 function getDefaultProviderURL(network: string) {
-  return `https://${network}.infura.io/v3/${process.env.INFURA_KEY}`
+  switch (network) {
+    case 'goerli':
+      return `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+    default:
+      return `https://${network}.infura.io/v3/${process.env.INFURA_KEY}`
+  }
 }
 
 function setupDefaultNetworkProviders(buidlerConfig) {
@@ -80,7 +85,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.15',
+        version: '0.8.16',
         settings: {
           optimizer: {
             enabled: true,
@@ -104,13 +109,16 @@ const config: HardhatUserConfig = {
       gasPrice: 'auto',
       blockGasLimit: 12000000,
       accounts: {
-        mnemonic: 'myth like bonus scare over problem client lizard pioneer submit female collect',
+        mnemonic: process.env.MNEMONIC,
       },
     },
     ganache: {
       chainId: 1337,
       url: 'http://localhost:8545',
     },
+    goerli: {
+      url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+    }
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
@@ -119,7 +127,8 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS ? true : false,
     showTimeSpent: true,
     currency: 'USD',
-    outputFile: 'reports/gas-report.log',
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    // outputFile: 'reports/gas-report.log',
   },
   typechain: {
     outDir: 'build/types',

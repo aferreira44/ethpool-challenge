@@ -8,6 +8,7 @@
     "build": "scripts/build",
     "clean": "rm -rf build/ cache/ dist/",
     "compile": "hardhat compile",
+    "deploy:goerli": "hardhat run scripts/deploy.ts --network goerli",
     "test": "scripts/test",
     "test:gas": "RUN_EVM=true REPORT_GAS=true scripts/test",
     "test:coverage": "scripts/coverage",
@@ -22,7 +23,7 @@
     "prettier:sol": "prettier --write 'contracts/*.sol'",
     "security": "scripts/security",
     "flatten": "scripts/flatten",
-    "verify": "hardhat verify"
+    "verify": "hardhat verify --network goerli"
   },
   "files": [
     "dist/**/*",
