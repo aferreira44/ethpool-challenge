@@ -6,7 +6,7 @@ Users must be able to take out their deposits along with their portion of reward
 
 New rewards are deposited manually into the pool by the ETHPool team each week using a contract function.
 
-## Requirements
+## Challenge Requirements
 
 - Only the team can deposit rewards.
 - Deposited rewards go to the pool of users, not to individual users.
@@ -21,6 +21,11 @@ A deposits 100, and B deposits 300 for a total of 400 in the pool. Now A has 25%
 
 A deposits then T deposits then B deposits then A withdraws and finally B withdraws. A should get their deposit + all the rewards.
 B should only get their deposit because rewards were sent to the pool before they participated.
+
+## Other assumptions
+
+- When a user withdraws, there's a limit of the last 52 weeks of deposits + rewards they can withdraw.
+- If there's more than 52 weeks that the user can claim, the user must withdraw multiple times.
 
 ## Goal
 
