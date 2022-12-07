@@ -42,7 +42,6 @@ contract ETHPool is AccessControl {
     // userAddress => weekNumber
     mapping(address => uint256[]) public weeksUserClaimed;
 
-
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _weekCounter.increment();
@@ -59,13 +58,16 @@ contract ETHPool is AccessControl {
 
         weeksUserDeposited[msg.sender].push(currentWeek);
         weeksUserCanClaim[msg.sender].push(currentWeek);
-        
+
         emit Deposit(msg.sender, currentWeek, msg.value);
     }
 
     function depositReward() public payable onlyRole(TEAM_MEMBER_ROLE) {
         require(msg.value > 0, "You need to send some ETH as reward");
-        require(block.timestamp > lastTimeDepositReward.add(1 weeks), "Team members can only deposit rewards once a week");
+        require(
+            block.timestamp > lastTimeDepositReward.add(1 weeks),
+            "Team members can only deposit rewards once a week"
+        );
 
         uint256 currentWeek = _weekCounter.current();
 
@@ -107,7 +109,7 @@ contract ETHPool is AccessControl {
         require(totalDeposited[week] > 0, "No one deposited for this week");
         require(rewardsDeposited[week] > 0, "Rewards not deposited for this week");
         require(depositedByAddress[week][msg.sender] > 0, "You didn't deposit for this week");
-    
+
         return depositedByAddress[week][msg.sender].mul(rewardsDeposited[week]).div(totalDeposited[week]);
     }
 

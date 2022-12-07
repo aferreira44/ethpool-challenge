@@ -45,6 +45,20 @@ describe('ETHPool', () => {
         expect(isTeamMember).to.be.true;
     });
 
+    describe('grantRole', async () => {
+        it('Admin should add a new team member', async () => {
+            const tx = await ethPool.connect(admin).grantRole(ethPool.TEAM_MEMBER_ROLE(), newTeamMember.address);
+
+            const isTeamMember = await ethPool.hasRole(ethPool.TEAM_MEMBER_ROLE(), newTeamMember.address);
+
+            expect(isTeamMember).to.be.true;
+
+            expect(tx)
+                .to.emit(ethPool, 'RoleGranted')
+                .withArgs(await ethPool.TEAM_MEMBER_ROLE(), newTeamMember.address, admin.address);
+        });
+    });
+
     describe('deposit', async () => {
         it('User should be able to deposit ETH into the pool', async () => {
             const amount = ethers.utils.parseEther('1');
@@ -98,7 +112,7 @@ describe('ETHPool', () => {
 
             await expect(tx).to.changeEtherBalance(teamMember.address, amount.mul(-1));
             await expect(tx).to.changeEtherBalance(ethPool.address, amount);
-            
+
             expect(await ethPool.rewardsDeposited(currentWeek)).to.be.equal(amount);
 
             await expect(tx).to.emit(ethPool, 'DepositReward').withArgs(teamMember.address, currentWeek, amount);
@@ -116,22 +130,22 @@ describe('ETHPool', () => {
 
         it('Team members can only deposit rewards once a week', async () => {
             const amount = ethers.utils.parseEther('1');
-            
+
             await ethPool.connect(teamMember).depositReward({ value: amount });
 
             const revertedTx = ethPool.connect(teamMember).depositReward({ value: amount });
-            await expect(revertedTx).to.be.revertedWith("Team members can only deposit rewards once a week");
+            await expect(revertedTx).to.be.revertedWith('Team members can only deposit rewards once a week');
 
             // Get last time reward was deposited
             const lastTimeDepositReward = (await ethPool.lastTimeDepositReward()).toNumber();
 
             // Increase time to almost a week and try again. It should be reverted.
-            await ethers.provider.send("evm_setNextBlockTimestamp", [lastTimeDepositReward + 604799]);
+            await ethers.provider.send('evm_setNextBlockTimestamp', [lastTimeDepositReward + 604799]);
             const revertedTx_2 = ethPool.connect(teamMember).depositReward({ value: amount });
-            await expect(revertedTx_2).to.be.revertedWith("Team members can only deposit rewards once a week");
+            await expect(revertedTx_2).to.be.revertedWith('Team members can only deposit rewards once a week');
 
             // Increase time to a week since last reward deposited and try again. It should be successful.
-            await ethers.provider.send("evm_setNextBlockTimestamp", [lastTimeDepositReward + 604801]);
+            await ethers.provider.send('evm_setNextBlockTimestamp', [lastTimeDepositReward + 604801]);
             const tx = await ethPool.connect(teamMember).depositReward({ value: amount });
 
             await expect(tx).to.changeEtherBalance(teamMember.address, amount.mul(-1));
@@ -180,10 +194,10 @@ describe('ETHPool', () => {
             // User A withdraws
             await ethPool.connect(userA).withdraw();
             await expect(await ethPool.amountToWithdraw(userA.address)).to.be.equal(0);
-            
+
             const userA_tx = ethPool.connect(userA).withdraw();
             await expect(userA_tx).to.be.revertedWith('You have nothing to withdraw');
-            
+
             // User B withdraws
             await ethPool.connect(userB).withdraw();
             await expect(await ethPool.amountToWithdraw(userB.address)).to.be.equal(0);
@@ -232,10 +246,10 @@ describe('ETHPool', () => {
             // User A withdraws
             await ethPool.connect(userA).withdraw();
             await expect(await ethPool.amountToWithdraw(userA.address)).to.be.equal(0);
-            
+
             const userA_tx = ethPool.connect(userA).withdraw();
             await expect(userA_tx).to.be.revertedWith('You have nothing to withdraw');
-            
+
             // User B withdraws
             await ethPool.connect(userB).withdraw();
             await expect(await ethPool.amountToWithdraw(userB.address)).to.be.equal(0);
@@ -254,12 +268,12 @@ describe('ETHPool', () => {
             await ethPool.connect(userA).deposit({ value: userA_amount });
 
             await ethPool.connect(teamMember).depositReward({ value: teamMember_amount });
-            
+
             await ethPool.connect(userA).deposit({ value: userA_amount });
             await ethPool.connect(userB).deposit({ value: userB_amount });
 
             const lastTimeDepositReward = (await ethPool.lastTimeDepositReward()).toNumber();
-            await ethers.provider.send("evm_setNextBlockTimestamp", [lastTimeDepositReward + 604801]);
+            await ethers.provider.send('evm_setNextBlockTimestamp', [lastTimeDepositReward + 604801]);
             await ethPool.connect(teamMember).depositReward({ value: teamMember_amount });
 
             const userA_tx = ethPool.connect(userA).withdraw();
@@ -290,30 +304,16 @@ describe('ETHPool', () => {
             // User A withdraws
             await ethPool.connect(userA).withdraw();
             await expect(await ethPool.amountToWithdraw(userA.address)).to.be.equal(0);
-            
+
             const userA_tx = ethPool.connect(userA).withdraw();
             await expect(userA_tx).to.be.revertedWith('You have nothing to withdraw');
-            
+
             // User B withdraws
             await ethPool.connect(userB).withdraw();
             await expect(await ethPool.amountToWithdraw(userB.address)).to.be.equal(0);
 
             const userB_tx = ethPool.connect(userB).withdraw();
             await expect(userB_tx).to.be.revertedWith('You have nothing to withdraw');
-        });
-    });
-
-    describe('grantRole', async () => {
-        it('Admin should add a new team member', async () => {
-            const tx = await ethPool.connect(admin).grantRole(ethPool.TEAM_MEMBER_ROLE(), newTeamMember.address);
-
-            const isTeamMember = await ethPool.hasRole(ethPool.TEAM_MEMBER_ROLE(), newTeamMember.address);
-
-            expect(isTeamMember).to.be.true;
-
-            expect(tx)
-                .to.emit(ethPool, 'RoleGranted')
-                .withArgs(await ethPool.TEAM_MEMBER_ROLE(), newTeamMember.address, admin.address);
         });
     });
 });
