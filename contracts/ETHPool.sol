@@ -58,18 +58,12 @@ contract ETHPool is AccessControl {
             lastWeekUserDeposited = weeksUserDeposited[msg.sender][weeksUserDeposited[msg.sender].length - 1];
         }
 
-        weeksUserDeposited[msg.sender].push(currentWeek);
-        weeksUserCanClaim[msg.sender].push(currentWeek);
-
-        if (lastWeekUserDeposited != 0 && lastWeekUserDeposited != currentWeek) {
-            // Calculate rewards for last week user deposited and add to amountToWithdraw
-            uint256 rewards = calculateRewards(lastWeekUserDeposited);
-            amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(rewards);
-        }
-
         depositedByAddress[currentWeek][msg.sender] = depositedByAddress[currentWeek][msg.sender].add(msg.value);
         amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(msg.value);
         totalDeposited[currentWeek] = totalDeposited[currentWeek].add(msg.value);
+
+        weeksUserDeposited[msg.sender].push(currentWeek);
+        weeksUserCanClaim[msg.sender].push(currentWeek);
         
         emit Deposit(msg.sender, currentWeek, msg.value);
     }
@@ -95,33 +89,17 @@ contract ETHPool is AccessControl {
 
         // Iterate through weeksUserCanClaim and add rewards to amountToWithdraw
         uint256 limit = 52; // 52 weeks in a year
-        for (uint256 i = 0; i < limit && i < weeksUserCanClaim[msg.sender].length; i++) {
+        while (weeksUserCanClaim[msg.sender].length > 0 && limit > 0) {
+            uint256 i = weeksUserCanClaim[msg.sender].length - 1;
             uint256 week = weeksUserCanClaim[msg.sender][i];
             if (rewardsDeposited[week] > 0) {
                 uint256 rewards = calculateRewards(week);
-                // console.log("Rewards for week %s: %s", week, rewards);
                 amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(rewards);
             }
             weeksUserClaimed[msg.sender].push(week);
             weeksUserCanClaim[msg.sender].pop();
+            limit--;
         }
-
-        // uint256 lastWeekUserDeposited;
-        // uint256 currentWeek = _weekCounter.current();
-
-        // if (weeksUserDeposited[msg.sender].length != 0) {
-        //     lastWeekUserDeposited = weeksUserDeposited[msg.sender][weeksUserDeposited[msg.sender].length - 1];
-        // }
-
-        // if (lastWeekUserDeposited != currentWeek) {
-        //     // Calculate rewards for last week user deposited and add to amountToWithdraw
-        //     uint256 rewards = calculateRewards(msg.sender, lastWeekUserDeposited);
-        //     console.log("Rewards for last week user deposited: %s", rewards);
-        //     amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(rewards);
-        //     console.log("amountToWithdraw: %s", amountToWithdraw[msg.sender]);
-        // }
-
-        // console.log("amountToWithdraw[msg.sender]: ", amountToWithdraw[msg.sender]);
 
         uint256 amountToBeTransferred = amountToWithdraw[msg.sender];
         amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].sub(amountToBeTransferred);
@@ -138,10 +116,6 @@ contract ETHPool is AccessControl {
     
         return depositedByAddress[week][msg.sender].mul(rewardsDeposited[week]).div(totalDeposited[week]);
     }
-
-    // function getUserCanClaim() public view returns (bool canClaim) {
-    //     return weeksUserCanClaim[msg.sender].length > 0;
-    // }
 
     function getCurrentWeek() public view returns (uint256 rewardRoundCounter) {
         return _weekCounter.current();
