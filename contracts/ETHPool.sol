@@ -12,7 +12,7 @@ contract ETHPool is AccessControl {
 
     event Deposit(address indexed user, uint256 week, uint256 amount);
     event DepositReward(address indexed teamMember, uint256 week, uint256 amount);
-    event Withdraw(address indexed user, uint256 amount);
+    event Withdraw(address indexed teamMember, uint256 amount);
 
     bytes32 public constant TEAM_MEMBER_ROLE = keccak256("TEAM_MEMBER_ROLE");
 
@@ -27,14 +27,21 @@ contract ETHPool is AccessControl {
     // weekNumber => rewardsDeposited
     mapping(uint256 => uint256) public rewardsDeposited;
 
-    // userAddress => weekNumber
-    mapping(address => uint256) public lastWeekUserDeposited;
-
     // timestamp
     uint256 public lastTimeDepositReward;
 
     // userAddress => amountToWithdraw
     mapping(address => uint256) public amountToWithdraw;
+
+    // userAddress => weekNumber
+    mapping(address => uint256[]) public weeksUserDeposited;
+
+    // userAddress => weekNumber
+    mapping(address => uint256[]) public weeksUserCanClaim;
+
+    // userAddress => weekNumber
+    mapping(address => uint256[]) public weeksUserClaimed;
+
 
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -45,20 +52,14 @@ contract ETHPool is AccessControl {
         require(msg.value > 0, "You need to send some ETH");
 
         uint256 currentWeek = _weekCounter.current();
-        uint256 lastWeekDeposited = lastWeekUserDeposited[msg.sender];
 
-        if (lastWeekDeposited != 0 && lastWeekDeposited != currentWeek) {
-            // Calculate rewards for last week user deposited and add to amountToWithdraw
-            uint256 rewards = calculateRewards(lastWeekDeposited);
-            amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(rewards);
-        }
-
-        totalDeposited[currentWeek] = totalDeposited[currentWeek].add(msg.value);
-        amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(msg.value);
         depositedByAddress[currentWeek][msg.sender] = depositedByAddress[currentWeek][msg.sender].add(msg.value);
+        amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(msg.value);
+        totalDeposited[currentWeek] = totalDeposited[currentWeek].add(msg.value);
 
-        lastWeekUserDeposited[msg.sender] = currentWeek;
-
+        weeksUserDeposited[msg.sender].push(currentWeek);
+        weeksUserCanClaim[msg.sender].push(currentWeek);
+        
         emit Deposit(msg.sender, currentWeek, msg.value);
     }
 
@@ -78,19 +79,24 @@ contract ETHPool is AccessControl {
 
     function withdraw() public {
         require(amountToWithdraw[msg.sender] > 0, "You have nothing to withdraw");
-        require(lastWeekUserDeposited[msg.sender] > 0, "You can't withdraw yet. Make a deposit first");
+        require(weeksUserCanClaim[msg.sender].length > 0, "You have nothing to withdraw");
 
-        uint256 currentWeek = _weekCounter.current();
-        uint256 lastWeekDeposited = lastWeekUserDeposited[msg.sender];
-
-        if (lastWeekDeposited != currentWeek) {
-            // Calculate rewards for last week user deposited and add to amountToWithdraw
-            uint256 rewards = calculateRewards(lastWeekDeposited);
-            amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(rewards);
+        // Iterate through weeksUserCanClaim and add rewards to amountToWithdraw
+        uint256 limit = 52; // 52 weeks in a year
+        while (weeksUserCanClaim[msg.sender].length > 0 && limit > 0) {
+            uint256 i = weeksUserCanClaim[msg.sender].length - 1;
+            uint256 week = weeksUserCanClaim[msg.sender][i];
+            if (rewardsDeposited[week] > 0) {
+                uint256 rewards = calculateRewards(week);
+                amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].add(rewards);
+            }
+            weeksUserClaimed[msg.sender].push(week);
+            weeksUserCanClaim[msg.sender].pop();
+            limit--;
         }
 
         uint256 amountToBeTransferred = amountToWithdraw[msg.sender];
-        amountToWithdraw[msg.sender] = 0;
+        amountToWithdraw[msg.sender] = amountToWithdraw[msg.sender].sub(amountToBeTransferred);
 
         emit Withdraw(msg.sender, amountToBeTransferred);
 
@@ -101,7 +107,7 @@ contract ETHPool is AccessControl {
         require(totalDeposited[week] > 0, "No one deposited for this week");
         require(rewardsDeposited[week] > 0, "Rewards not deposited for this week");
         require(depositedByAddress[week][msg.sender] > 0, "You didn't deposit for this week");
-
+    
         return depositedByAddress[week][msg.sender].mul(rewardsDeposited[week]).div(totalDeposited[week]);
     }
 
