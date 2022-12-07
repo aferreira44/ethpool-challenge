@@ -71,6 +71,14 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, bre) => {
   }
 })
 
+task("balance", "Prints the total amount of ETH held in the address")
+  .addParam("address", "The account or contract address")
+  .setAction(async (taskArgs, bre) => {
+    const balance = await bre.ethers.provider.getBalance(taskArgs.address);
+
+    console.log(`Address balance: ${bre.ethers.utils.formatEther(balance)} ETH`);
+  });
+
 // Config
 
 const config: HardhatUserConfig = {
